@@ -1,5 +1,41 @@
-*{
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
+html,
+body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+h1 {
+  margin-left: 25px;
+}
+
+h1,
+h2 {
+  display: inline-block;
+  border-bottom: 3px solid;
+}
+
+.party,
+.party-details {
+  margin: 0px 20px;
+  padding-bottom: 15px;
+  border-bottom: 20px solid;
+}
+
+.details-button {
+  background-color: rgb(211, 211, 211);
+  border-radius: 5px;
+  border: solid rgb(99, 223, 92);
+}
+
+.delete-button {
+  background-color: rgb(211, 211, 211);
+  border-radius: 5px;
+  border: solid rgb(214, 139, 47);
+}
+
+button:hover {
+  background-color: rgb(85, 215, 65);
+  border-radius: 5px;
+  border: solid rgb(45, 161, 51);
 }
