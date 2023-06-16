@@ -33,11 +33,26 @@ const getPartyById = async (id) => {
 // delete party
 const deleteParty = async (id) => {
   // your code here
+  try {
+    const response = await fetch(`${PARTIES_API_URL}/${id}`, {
+      method: "DELETE",
+    });
+    const party = await response.json();
+    console.log(party);
+    getAllParties();
+    window.location.reload();
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 // render a single party by id
 const renderSinglePartyById = async (id) => {
   try {
+    if (!id || id.length == 0) {
+      partyContainer.innerHTML = "<h3>No Party Found</h3>";
+      return;
+    }
     // fetch party details from server
     const party = await getPartyById(id);
 
@@ -49,43 +64,40 @@ const renderSinglePartyById = async (id) => {
     const rsvpsResponse = await fetch(`${RSVPS_API_URL}/party/${id}`);
     const rsvps = await rsvpsResponse.json();
 
-    // GET - get all gifts by party id - /api/workshop/parties/gifts/:partyId -BUGGY?
-    // const giftsResponse = await fetch(`${PARTIES_API_URL}/party/gifts/${id}`);
+    // // GET - get all gifts by party id - /api/workshop/gifts/party/:partyid
+    // const giftsResponse = await fetch(`${GIFTS_API_URL}/party/${id}`);
     // const gifts = await giftsResponse.json();
 
     // create new HTML element to display party details
-    const partyDetailsElement = document.createElement('div');
-    partyDetailsElement.classList.add('party-details');
-    partyDetailsElement.innerHTML = `
-            <h2>${party.title}</h2>
-            <p>${party.event}</p>
-            <p>${party.city}</p>
-            <p>${party.state}</p>
-            <p>${party.country}</p>
-            <h3>Guests:</h3>
-            <ul>
-            ${guests
-              .map(
-                (guest, index) => `
-              <li>
-                <div>${guest.name}</div>
-                <div>${rsvps[index].status}</div>
-              </li>
-            `
-              )
-              .join('')}
-          </ul>
-          
-
-
-            <button class="close-button">Close</button>
+    let guestList;
+    if (!guests || guests.length === 0) {
+      guestList = `No guests`;
+    } else {
+      guestList = `<ul>${guests
+        .map(
+          (guest, index) =>
+            `<li><div>${guest.name}</div><div>
+            <b>Status: </b>${rsvps[index].status}</div></li>`
+        )
+        .join("")}</ul>`;
+    }
+    let partyDetailsElement = `
+    <div class="party-details"><h2>${party.name}</h2>
+    <p><b>Description:</b> ${party.description}</p>
+    <p><b>Date:</b> ${party.date}</p>
+    <p><b>Time:</b> ${party.time}</p>
+    <p><b>Location:</b> ${party.location}</p>
+    <p>${guestList}</p>
+    <button class="close-button">Close</button></div>
+            
         `;
-    partyContainer.appendChild(partyDetailsElement);
+    partyContainer.innerHTML = partyDetailsElement;
 
     // add event listener to close button
-    const closeButton = partyDetailsElement.querySelector('.close-button');
-    closeButton.addEventListener('click', () => {
-      partyDetailsElement.remove();
+    const closeButton = partyContainer.querySelector(".close-button");
+    closeButton.addEventListener("click", async () => {
+      const parties = await getAllParties();
+      renderParties(parties);
     });
   } catch (error) {
     console.error(error);
@@ -95,31 +107,35 @@ const renderSinglePartyById = async (id) => {
 // render all parties
 const renderParties = async (parties) => {
   try {
-    partyContainer.innerHTML = '';
-    parties.forEach((party) => {
-      const partyElement = document.createElement('div');
-      partyElement.classList.add('party');
+      partyContainer.innerHTML = "";
+      parties.forEach((party) => {
+      const partyElement = document.createElement("div");
+      partyElement.classList.add("party");
       partyElement.innerHTML = `
-                <h2>${party.name}</h2>
-                <p>${party.description}</p>
-                <p>${party.date}</p>
-                <p>${party.time}</p>
-                <p>${party.location}</p>
+      <h2>${party.name}</h2>
+    <p><b>Description:</b> ${party.description}</p>
+    <p><b>Date:</b> ${party.date}</p>
+    <p><b>Time:</b> ${party.time}</p>
+    <p><b>Location:</b> ${party.location}</p>
                 <button class="details-button" data-id="${party.id}">See Details</button>
                 <button class="delete-button" data-id="${party.id}">Delete</button>
             `;
       partyContainer.appendChild(partyElement);
 
       // see details
-      const detailsButton = partyElement.querySelector('.details-button');
-      detailsButton.addEventListener('click', async (event) => {
+      const detailsButton = partyElement.querySelector(".details-button");
+      detailsButton.addEventListener("click", async (event) => {
         // your code here
+        let selectedId = event.target.dataset.id;
+        renderSinglePartyById(selectedId);
       });
 
       // delete party
-      const deleteButton = partyElement.querySelector('.delete-button');
-      deleteButton.addEventListener('click', async (event) => {
+      const deleteButton = partyElement.querySelector(".delete-button");
+      deleteButton.addEventListener("click", async (event) => {
         // your code here
+        let partyId = event.target.dataset.id;
+        deleteParty(partyId);
       });
     });
   } catch (error) {
@@ -130,6 +146,8 @@ const renderParties = async (parties) => {
 // init function
 const init = async () => {
   // your code here
+  let parties = await getAllParties();
+  renderParties(parties);
 };
 
 init();
